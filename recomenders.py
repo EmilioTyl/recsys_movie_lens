@@ -174,10 +174,10 @@ class ItemBasedCF:
         num = np.multiply(filtered.to_numpy()[arg_sort],weights[arg_sort])
         if self.knei:
             num = num[:self.knei].sum()
-            den = weights[arg_sort][:self.knei].sum()
+            den = np.array([abs(w) for w in weights[arg_sort][:self.knei]]).sum()
         else:
             num = num.sum()
-            den = weights.sum()
+            den = np.array([abs(w) for w in weights]).sum()
         rate = num/den
         return rate
     
