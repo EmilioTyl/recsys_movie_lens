@@ -48,3 +48,16 @@ def compute_hits(model, top_N, data_test):
         ix = np.where(user_index == user_id)
         hits = hits+1 if movie_id in top_N[ix,:] else hits
     return hits
+# MAE / RMSE
+def compute_rmse(y_pred, y_true):
+    return np.sqrt(np.mean(np.power(y_pred - y_true, 2)))   
+    
+def compute_mae(y_pred, y_true):
+    return np.mean(np.abs(y_pred - y_true))
+      
+def evaluate_mae_rmse(estimate_f,data_train,data_test):
+    """ RMSE-based predictive performance evaluation with pandas. """
+    ids_to_estimate = zip(data_test.user_id, data_test.movie_id)
+    estimated = np.array([estimate_f(u,i) if u in data_train.user_id else 3 for (u,i) in ids_to_estimate ])
+    real = data_test.rating.values
+    return compute_rmse(estimated, real), compute_mae(estimated, real)

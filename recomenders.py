@@ -104,6 +104,13 @@ class SLIM():
             top_N.append(selected_list)
         return np.array(top_N)
 
+    def estimate(self, user_id, movie_id):
+        u, = np.where(self.user_item.index==user_id)
+        m, = np.where(self.user_item.columns==movie_id)
+        ratings = self.sparse_user_item[u[0],:] * self.W.T 
+        rating = ratings[:,m[0]]
+        return rating.data[0] if len(rating.data) > 0 else 0
+
     def get_user_item(self):
         return self.user_item
 
@@ -289,6 +296,12 @@ class PureSVD():
         return np.array(top_N)
 
     def get_user_item(self):
-        return self.user_item      
+        return self.user_item  
+
+    def estimate(self, user_id, movie_id):
+        u,=np.where(self.user_item.index==user_id)
+        m,=np.where(self.user_item.columns==movie_id)
+        rating = sparse.csr_matrix((self.sparse_user_item[u,:] * self.Q).dot(self.QT[:,m]))
+        return rating.data[0] if len(rating.data) > 0 else 0
 
 
