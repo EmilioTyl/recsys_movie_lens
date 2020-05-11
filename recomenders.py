@@ -85,8 +85,9 @@ class SLIM():
                 top_N.append([ self.movie_columns[i] for v,i in sorted(zip(r.data,r.indices),reverse=True) if v > 0][:N])
         return np.array(top_N)
     
-    def all_useres_recomendation_precision_recall(self, selection=1000, N=10):
-        self.movie_columns = self.user_item.columns
+
+    def all_useres_recomendation_precision_recall(self, data_test, selection=1000, N=10):
+        movie_columns = self.user_item.columns
         ratings = self.sparse_user_item * self.W.T 
         
         top_N = []
@@ -96,13 +97,20 @@ class SLIM():
         elim_matrix.data = max_score
         
         ratings = ratings - elim_matrix # set to rating<0 to the movies that are already rated
-        for u in range(self.sparse_user_item.shape[0]):
-            r = ratings[u,:]
-            idx = np.random.permutation(len(r.data))[:selection]
-            selected_list = np.array([ self.movie_columns[i] for v,i in sorted(zip(r.data[idx],r.indices[idx]),reverse=True) if v > 0])
-            selected_list = selected_list[:N]
+        for i,row in data_test.iterrows():
+            u = row["user_id"]
+            m = row["movie_id"]
+            ui, = np.where(self.user_item.index==u)
+            r = ratings[ui,:]
+            selected_list = np.array([ movie_columns[i] for v,i in sorted(zip(r.data,r.indices),reverse=True) if v > 0 or movie_columns[i] == m])
+            idx = np.random.permutation(len(selected_list))[:selection]
+            mi, = np.where(selected_list==m)
+            if len(mi)>0 and not mi[0] in idx: idx = np.concatenate((idx, mi))
+            idx = sorted(idx)
+            selected_list = selected_list[idx][:N]
             top_N.append(selected_list)
         return np.array(top_N)
+
 
     def estimate(self, user_id, movie_id):
         u, = np.where(self.user_item.index==user_id)
@@ -276,8 +284,8 @@ class PureSVD():
                 top_N.append([ self.movie_columns[i] for v,i in sorted(zip(r.data,r.indices),reverse=True) if v > 0][:N])
         return np.array(top_N)
     
-    def all_useres_recomendation_precision_recall(self, selection=1000, N=10):
-        self.movie_columns = self.user_item.columns
+    def all_useres_recomendation_precision_recall(self, data_test, selection=1000, N=10):
+        movie_columns = self.user_item.columns
         ratings = sparse.csr_matrix((self.sparse_user_item * self.Q).dot(self.QT))
         
         top_N = []
@@ -287,13 +295,20 @@ class PureSVD():
         elim_matrix.data = max_score
         
         ratings = ratings - elim_matrix # set to rating<0 to the movies that are already rated
-        for u in range(self.sparse_user_item.shape[0]):
-            r = ratings[u,:]
-            idx = np.random.permutation(len(r.data))[:selection]
-            selected_list = np.array([ self.movie_columns[i] for v,i in sorted(zip(r.data[idx],r.indices[idx]),reverse=True) if v > 0])
-            selected_list = selected_list[:N]
+        for i,row in data_test.iterrows():
+            u = row["user_id"]
+            m = row["movie_id"]
+            ui, = np.where(self.user_item.index==u)
+            r = ratings[ui,:]
+            selected_list = np.array([ movie_columns[i] for v,i in sorted(zip(r.data,r.indices),reverse=True) if v > 0 or movie_columns[i] == m])
+            idx = np.random.permutation(len(selected_list))[:selection]
+            mi, = np.where(selected_list==m)
+            if len(mi)>0 and not mi[0] in idx: idx = np.concatenate((idx, mi))
+            idx = sorted(idx)
+            selected_list = selected_list[idx][:N]
             top_N.append(selected_list)
         return np.array(top_N)
+    
 
     def get_user_item(self):
         return self.user_item  

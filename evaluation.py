@@ -41,13 +41,13 @@ def compute_precision_recall_by_N(model,top_N, data_test):
 
 def compute_hits(model, top_N, data_test):
     hits = 0
-    user_index = model.get_user_item().index.to_numpy()
-    for i, r in data_test.iterrows():
-        user_id = r["user_id"]
+    
+    for i, r in enumerate(data_test.iterrows()):
+        _, r = r
         movie_id = r["movie_id"]
-        ix = np.where(user_index == user_id)
-        hits = hits+1 if movie_id in top_N[ix,:] else hits
+        hits = hits+1 if movie_id in top_N[i,:] else hits
     return hits
+
 # MAE / RMSE
 def compute_rmse(y_pred, y_true):
     return np.sqrt(np.mean(np.power(y_pred - y_true, 2)))   
